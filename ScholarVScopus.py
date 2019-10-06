@@ -5,9 +5,6 @@ import csv
 import os
 from fuzzywuzzy import fuzz
 
-author_name = input("Enter the search term to identify your Scholar (e.g Ludo Waltman Leiden University): ")
-search = scholarly.search_author(author_name)
-author = next(search).fill()
 def levenshtein_check(title, publications):
     for pub in publications:
         comparison = pub.bib["title"]
@@ -22,6 +19,11 @@ def levenshtein_check(title, publications):
             #print("Possible match. " + title + " === " + comparison)
             return cite_count if cite_count else True
     return False
+
+author_name = input("Enter the search term to identify your Scholar (e.g Ludo Waltman Leiden University): ")
+search = scholarly.search_author(author_name)
+author = next(search).fill()
+print("Working with the following Scholar profile: https://scholar.google.com/citations?user=" + author.id)
 
 # From the exported scopus publications, check if they exist on scholar
 scopus_count = not_found_on_scholar = problematic_scholar = 0
