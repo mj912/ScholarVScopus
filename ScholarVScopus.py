@@ -2,9 +2,11 @@ import scholarly
 import requests
 import json
 import csv
+import os
 from fuzzywuzzy import fuzz
 
-search = scholarly.search_author("Ludo Waltman")
+author_name = input("Enter the search term to identify your Scholar (e.g Ludo Waltman Leiden University): ")
+search = scholarly.search_author(author_name)
 author = next(search).fill()
 def levenshtein_check(title, publications):
     for pub in publications:
@@ -68,7 +70,11 @@ for miss in missing_publications:
     # except StopIteration:
     #     print("--- Nothing was found. You're probably rate-limited by Google, check manually ---")
 
-with open("citation_counts.csv", "w") as csv_file:
+
+# Saving the citation comparisons to a new directory
+if not os.path.exists(author_name):
+    os.mkdir(author_name)
+with open(author_name + "/citation_counts.csv", "w") as csv_file:
     writer = csv.writer(csv_file)
     csv_data = [["Google Scholar", "Scopus"]]
     csv_data.extend(citation_comparisons)
