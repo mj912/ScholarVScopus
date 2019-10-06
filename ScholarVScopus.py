@@ -4,7 +4,7 @@ import json
 import csv
 from fuzzywuzzy import fuzz
 
-search = scholarly.search_author('Ludo Waltman')
+search = scholarly.search_author("Ludo Waltman")
 author = next(search).fill()
 def levenshtein_check(title, publications):
     for pub in publications:
@@ -25,7 +25,7 @@ def levenshtein_check(title, publications):
 scopus_count = not_found_on_scholar = problematic_scholar = 0
 citation_comparisons = []
 missing_publications = []
-with open("scopus.csv", encoding='utf-8-sig') as csv_file:
+with open("scopus.csv", encoding="utf-8-sig") as csv_file:
     csv_read = csv.DictReader(csv_file)
     for row in csv_read:
         scopus_count += 1
@@ -43,11 +43,12 @@ with open("scopus.csv", encoding='utf-8-sig') as csv_file:
                 cite_count = 0
             scopus_cite = row['Cited by'] if row['Cited by'] else 0
             citation_comparisons.append([cite_count, int(scopus_cite)])
+csv_file.close()
 
 print(str(len(author.publications)) + " publications were found for this Scholar on Google.")
 print(str(scopus_count) + " publications were found for this Scholar from the Scopus export.")
-print(str(not_found_on_scholar) + " publications on Scopus were not found on Scholar.")
 print(str(scopus_count - not_found_on_scholar) + " publications are common across both databases.")
+print(str(not_found_on_scholar) + " publications on Scopus were not found on Scholar.")
 # Calculating the number of papers present on scholar but not scopus -- Total scholar publications minus the common publications (total scopus count - not found on scholar)
 print(str(len(author.publications) - (scopus_count - not_found_on_scholar)) + " publications on Scholar were not found on Scopus.")
 print(str(problematic_scholar) + " publications on Scopus were not found on Scholar which may affect the h-index.")
@@ -67,7 +68,12 @@ for miss in missing_publications:
     # except StopIteration:
     #     print("--- Nothing was found. You're probably rate-limited by Google, check manually ---")
 
-for counts in citation_comparisons:
-    if counts[0] <= counts[1]:
-    #    print(str(counts[0]) + " -- " + str(counts[1]))
-        pass
+with open("citation_counts.csv", "w") as csv_file:
+    writer = csv.writer(csv_file)
+    csv_data = [["Google Scholar", "Scopus"]]
+    csv_data.extend(citation_comparisons)
+    writer.writerows(csv_data)
+    for counts in citation_comparisons:
+        if counts[0] <= counts[1]:
+        #    print(str(counts[0]) + " -- " + str(counts[1]))
+            pass
