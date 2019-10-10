@@ -22,8 +22,12 @@ def levenshtein_check(title, publications):
 
 author_name = input("Enter the search term to identify your Scholar (e.g Ludo Waltman Leiden University): ")
 search = scholarly.search_author(author_name)
-author = next(search).fill()
-print("Working with the following Scholar profile: https://scholar.google.com/citations?user=" + author.id)
+try:
+    author = next(search).fill()
+    print("Working with the following Scholar profile: https://scholar.google.com/citations?user=" + author.id)
+except StopIteration:
+    print("No author found with search term.")
+    exit()
 
 # From the exported scopus publications, check if they exist on scholar
 scopus_count = not_found_on_scholar = problematic_scholar = 0
