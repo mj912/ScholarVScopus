@@ -24,10 +24,9 @@ def levenshtein_check(title, publications):
             return cite_count if cite_count else True
     return False
 
-
 # From the exported scopus publications, check if they exist on scholar
 def comparisons(filename, author):
-    scopus_count = 0
+    scopus_count = hindex_count = 0
     citation_comparisons = []
     problematic_publications = []
     missing_publications = []
@@ -51,6 +50,17 @@ def comparisons(filename, author):
 
     return scopus_count, citation_comparisons, problematic_publications, missing_publications
 
+# Used to count the h-index from the citation counts array. GScholar is index 0
+def calculate_hindex(citation_comparisons):
+    citations_sorted = sorted(citation_comparisons, key=lambda i: i[0], reverse=True)
+    j = hindex = 0
+    while j < len(citations_sorted):
+        if citations_sorted[j][0] > hindex:
+            hindex = hindex + 1
+        else:
+            break
+        j = j+1
+    return hindex
 
 def write_citation_counts(author_name, citation_comparisons):
     # Saving the citation comparisons to a new directory
@@ -80,7 +90,10 @@ def main():
         exit()
 
     scopus_count, citation_comparisons, problematic_publications, missing_publications = comparisons("scopus.csv", author)
-
+    
+    check_hindex = calculate_hindex(citation_comparisons)
+    if check_hindex != author.hindex:
+        print("The h-index we have calculated from the Google Scholar publications is not equal to the h-index publicly listed on their Scholar profile. Calculated - " + str(check_hindex) + ", Shown - " + str(author.hindex))
     write_citation_counts(author_name, citation_comparisons)
     write_missing_publications(author_name, missing_publications)
 
@@ -96,7 +109,7 @@ def main():
     # Stored as [ [Title, Cite_Count] ]
     for miss in problematic_publications:
         pass
-        print("\""+ str(miss[0]) + "\" is a missing publication from scholar with a citation count that may affect the total h-index of Google Scholar. The citation count of this article is " + str(miss[1]))
+        # print("\""+ str(miss[0]) + "\" is a missing publication from scholar with a citation count that may affect the total h-index of Google Scholar. The citation count of this article is " + str(miss[1]))
         # Check if the missing articles are indexed by Google Scholars search
         # search_query = scholarly.search_pubs_query("Ludo Waltman " + miss[0])
         # try:
