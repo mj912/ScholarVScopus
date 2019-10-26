@@ -51,11 +51,19 @@ def comparisons(filename, author):
     return scopus_count, citation_comparisons, problematic_publications, missing_publications
 
 # Used to count the h-index from the citation counts array. GScholar is index 0
-def calculate_hindex(citation_comparisons):
-    citations_sorted = sorted(citation_comparisons, key=lambda i: i[0], reverse=True)
+def calculate_hindex(publications):
+    publications_sorted = []
+    for pub in publications:
+        try:
+            cite_count = pub.citedby
+            publications_sorted.append(cite_count)
+        except AttributeError:
+            pass
+    publications_sorted.sort(reverse=True)
+
     j = hindex = 0
-    while j < len(citations_sorted):
-        if citations_sorted[j][0] > hindex:
+    while j < len(publications_sorted):
+        if publications_sorted[j] > hindex:
             hindex = hindex + 1
         else:
             break
@@ -71,7 +79,6 @@ def write_citation_counts(author_name, citation_comparisons):
         csv_data = [["Google Scholar", "Scopus"]]
         csv_data.extend(citation_comparisons)
         writer.writerows(csv_data)
-
 
 def write_missing_publications(author_name, missing_publications):
     if not os.path.exists(author_name):
@@ -89,27 +96,27 @@ def main():
         print("No author found with search term.")
         exit()
 
+    check_hindex = calculate_hindex(author.publications)
     scopus_count, citation_comparisons, problematic_publications, missing_publications = comparisons("scopus.csv", author)
-    
-    check_hindex = calculate_hindex(citation_comparisons)
-    if check_hindex != author.hindex:
-        print("The h-index we have calculated from the Google Scholar publications is not equal to the h-index publicly listed on their Scholar profile. Calculated - " + str(check_hindex) + ", Shown - " + str(author.hindex))
+
     write_citation_counts(author_name, citation_comparisons)
     write_missing_publications(author_name, missing_publications)
-
+    # Output findings to console
+    if check_hindex != author.hindex:
+        print("The h-index we have calculated from the Google Scholar publications is not equal to the h-index publicly listed on their Scholar profile. Calculated - " + str(check_hindex) + ", Shown - " + str(author.hindex))
     print(str(len(author.publications)) + " publications were found for this Scholar on Google.")
     print(str(scopus_count) + " publications were found for this Scholar from the Scopus export.")
     print(str(scopus_count - len(missing_publications)) + " publications are common across both databases.")
     print(str(len(missing_publications)) + " publications on Scopus were not found on Scholar.")
     # Calculating the number of papers present on scholar but not scopus = Total scholar publications minus the common publications (total scopus count - not found on scholar)
     print(str(len(author.publications) - (scopus_count - len(missing_publications))) + " publications on Scholar were not found on Scopus.")
-    print(str(len(problematic_publications)) + " on Scopus were not found on Scholar which may affect the h-index.")
+    print(str(len(problematic_publications)) + " publications on Scopus were not found on Scholar which may affect the h-index.")
 
     # Print our problematic publications to the console
     # Stored as [ [Title, Cite_Count] ]
     for miss in problematic_publications:
         pass
-        # print("\""+ str(miss[0]) + "\" is a missing publication from scholar with a citation count that may affect the total h-index of Google Scholar. The citation count of this article is " + str(miss[1]))
+        print("\""+ str(miss[0]) + "\" is a missing publication from scholar with a citation count that may affect the total h-index of Google Scholar. The citation count of this article is " + str(miss[1]))
         # Check if the missing articles are indexed by Google Scholars search
         # search_query = scholarly.search_pubs_query("Ludo Waltman " + miss[0])
         # try:
